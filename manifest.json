@@ -3,11 +3,11 @@
   "name": "dna-analysis-mcp",
   "version": "1.0.0",
   "display_name": "DNA Analysis MCP",
-  "description": "A Model Context Protocol server for analyzing DNA data with privacy protection",
-  "long_description": "This extension provides secure, local-only DNA analysis capabilities through MCP tools. It allows you to list DNA test subjects, retrieve subject information, and query specific SNP data by RSID while maintaining strict privacy controls. All DNA data remains on your local machine and is never transmitted externally.",
+  "description": "A Model Context Protocol server for analyzing DNA data with privacy protection. Place your DNA files in ~/dna-profiles/ folder.",
+  "long_description": "This extension provides secure, local-only DNA analysis capabilities through MCP tools. It allows you to list DNA test subjects, retrieve subject information, and query specific SNP data by RSID while maintaining strict privacy controls. All DNA data remains on your local machine and is never transmitted externally. To get started, place your DNA data files in the ~/dna-profiles/ folder. For detailed setup instructions, see: https://github.com/vlad-ds/dna-analysis-mcp",
   "author": {
     "name": "Vlad Gheorghe",
-    "url": "https://www.linkedin.com/in/vlad-ds/"
+    "url": "https://github.com/vlad-ds"
   },
   "license": "ISC",
   "keywords": ["dna", "genetics", "genomics", "snp", "analysis", "privacy", "bioinformatics"],
