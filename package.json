@@ -1,0 +1,35 @@
+{
+  "name": "dna-analysis-mcp",
+  "version": "1.0.0",
+  "description": "A Model Context Protocol (MCP) server for analyzing DNA data with privacy protection.",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "dna-analysis-mcp": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "tsc && node build/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vlad-ds/dna-analysis-mcp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vlad-ds/dna-analysis-mcp/issues"
+  },
+  "homepage": "https://github.com/vlad-ds/dna-analysis-mcp#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.2",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.7",
+    "typescript": "^5.8.3"
+  }
+}

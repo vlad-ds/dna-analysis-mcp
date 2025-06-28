@@ -63,21 +63,44 @@ touch ~/dna-profiles/example_subject/test_info.txt
 
 ## Setup
 
-1. Create virtual environment:
+1. Install dependencies:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+npm install
 ```
 
-2. Install dependencies:
+2. Build the server:
 ```bash
-pip install -e .
+npm run build
 ```
 
 3. Run the server:
 ```bash
-python server.py
+npm run start
 ```
+
+### Development
+```bash
+npm run dev    # Build and run in one command
+```
+
+## Claude Desktop Integration
+
+To add this MCP server to Claude Desktop, add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "dna-analysis": {
+      "command": "node",
+      "args": [
+        "/ABSOLUTE_PATH_TO_REPO/build/index.js"
+      ]
+    }
+  }
+}
+```
+
+Replace `/ABSOLUTE_PATH_TO_REPO` with the actual absolute path to this repository on your system.
 
 ## Privacy Notice
 
