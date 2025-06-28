@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * DNA Analysis MCP Server (Node.js)
+ * DNA Analysis MCP Server (Desktop Extension)
  *
  * A Model Context Protocol server for analyzing DNA data with privacy protection.
  * Provides tools to list subjects, get subject information, and query SNP data by RSID.
+ * 
+ * This server runs as a Desktop Extension (DXT) with configurable DNA profiles directory.
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -15,11 +17,34 @@ import {
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { readdir, readFile, stat } from "fs/promises";
-import { join } from "path";
+import { join, resolve } from "path";
 import { homedir } from "os";
 
-// Base directory for DNA profiles
-const SAMPLES_DIR = join(homedir(), "dna-profiles");
+// Get DNA profiles directory from environment or use default
+function getDnaProfilesDirectory(): string {
+  const envDir = process.env.DNA_PROFILES_DIRECTORY;
+  if (envDir) {
+    // Expand ~ to home directory if present
+    return envDir.startsWith('~') ? 
+      join(homedir(), envDir.slice(1)) : 
+      resolve(envDir);
+  }
+  return join(homedir(), "dna-profiles");
+}
+
+const SAMPLES_DIR = getDnaProfilesDirectory();
+
+// Enhanced logging for DXT environment
+function log(level: 'info' | 'error' | 'warn', message: string, data?: any) {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] [${level.toUpperCase()}] DNA-Analysis-MCP: ${message}`;
+  
+  if (data) {
+    console.error(`${logMessage} ${JSON.stringify(data)}`);
+  } else {
+    console.error(logMessage);
+  }
+}
 
 /**
  * Validate RSID format: must start with 'rs' followed by digits.
@@ -71,7 +96,11 @@ const QuerySnpDataSchema = z.object({
   rsids: z.union([z.string(), z.array(z.string())]),
 });
 
-// Create the MCP server
+// Configuration constants
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB limit for SNP files
+const OPERATION_TIMEOUT = 30000; // 30 second timeout for operations
+
+// Create the MCP server with enhanced configuration
 const server = new Server({
   name: "dna-analysis-mcp",
   version: "1.0.0",
@@ -80,6 +109,31 @@ const server = new Server({
     tools: {},
   },
 });
+
+// Enhanced file reading with size and timeout protection
+async function safeReadFile(filePath: string, maxSize: number = MAX_FILE_SIZE): Promise<string> {
+  return new Promise(async (resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`File read timeout after ${OPERATION_TIMEOUT}ms`));
+    }, OPERATION_TIMEOUT);
+
+    try {
+      const stats = await stat(filePath);
+      if (stats.size > maxSize) {
+        clearTimeout(timeout);
+        reject(new Error(`File too large: ${stats.size} bytes (max ${maxSize})`));
+        return;
+      }
+
+      const content = await readFile(filePath, 'utf-8');
+      clearTimeout(timeout);
+      resolve(content);
+    } catch (error) {
+      clearTimeout(timeout);
+      reject(error);
+    }
+  });
+}
 
 // Tool handlers
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -253,7 +307,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
           }
 
-          const content = await readFile(infoFile, 'utf-8');
+          const content = await safeReadFile(infoFile);
 
           return {
             content: [
@@ -311,7 +365,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             };
           }
 
-          const content = await readFile(infoFile, 'utf-8');
+          const content = await safeReadFile(infoFile);
 
           return {
             content: [
@@ -408,7 +462,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
 
           // Read and process the SNP file
-          const fileContent = await readFile(snpFile, 'utf-8');
+          const fileContent = await safeReadFile(snpFile);
           const lines = fileContent.split('\n');
           
           let header: string | null = null;
@@ -484,11 +538,47 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+  try {
+    log('info', 'Starting DNA Analysis MCP Server (DXT)', {
+      version: '1.0.0',
+      dnaProfilesDir: SAMPLES_DIR,
+      nodeVersion: process.version,
+      platform: process.platform
+    });
+
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    
+    log('info', 'DNA Analysis MCP Server connected successfully');
+    console.error("DNA Analysis MCP server running...");
+  } catch (error) {
+    log('error', 'Failed to start server', { error: error instanceof Error ? error.message : error });
+    throw error;
+  }
 }
 
+// Enhanced error handling with graceful shutdown
+process.on('SIGINT', () => {
+  log('info', 'Received SIGINT, shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  log('info', 'Received SIGTERM, shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('uncaughtException', (error) => {
+  log('error', 'Uncaught exception', { error: error.message, stack: error.stack });
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  log('error', 'Unhandled rejection', { reason });
+  process.exit(1);
+});
+
 main().catch((error) => {
-  console.error("Server error:", error);
+  log('error', 'Server startup failed', { error: error instanceof Error ? error.message : error });
   process.exit(1);
 });

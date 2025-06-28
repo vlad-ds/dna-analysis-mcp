@@ -1,0 +1,24 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#2563eb" stroke="#1e40af" stroke-width="2"/>
+  
+  <!-- DNA helix strands -->
+  <path d="M18 16 Q32 24 46 16 Q32 32 18 32 Q32 40 46 48 Q32 56 18 48" 
+        fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <path d="M46 16 Q32 24 18 16 Q32 32 46 32 Q32 40 18 48 Q32 56 46 48" 
+        fill="none" stroke="#e5e7eb" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Base pairs (connecting lines) -->
+  <line x1="24" y1="20" x2="40" y2="20" stroke="#fbbf24" stroke-width="2"/>
+  <line x1="32" y1="28" x2="32" y2="28" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+  <line x1="24" y1="36" x2="40" y2="36" stroke="#fbbf24" stroke-width="2"/>
+  <line x1="32" y1="44" x2="32" y2="44" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Data points -->
+  <circle cx="24" cy="20" r="2" fill="#10b981"/>
+  <circle cx="40" cy="20" r="2" fill="#ef4444"/>
+  <circle cx="32" cy="28" r="2" fill="#8b5cf6"/>
+  <circle cx="24" cy="36" r="2" fill="#ef4444"/>
+  <circle cx="40" cy="36" r="2" fill="#10b981"/>
+  <circle cx="32" cy="44" r="2" fill="#8b5cf6"/>
+</svg>

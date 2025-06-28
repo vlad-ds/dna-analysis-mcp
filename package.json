@@ -1,29 +1,38 @@
 {
   "name": "dna-analysis-mcp",
   "version": "1.0.0",
-  "description": "A Model Context Protocol (MCP) server for analyzing DNA data with privacy protection.",
+  "description": "A Model Context Protocol (MCP) server for analyzing DNA data with privacy protection, packaged as a Desktop Extension (DXT).",
   "type": "module",
-  "main": "build/index.js",
+  "main": "server/index.js",
   "bin": {
-    "dna-analysis-mcp": "build/index.js"
+    "dna-analysis-mcp": "server/index.js"
   },
   "scripts": {
-    "build": "tsc",
-    "start": "node build/index.js",
+    "build": "tsc && mkdir -p server && cp build/index.js server/",
+    "build:dxt": "npm run build && npm run bundle",
+    "bundle": "npm pack --pack-destination=dist/",
+    "start": "node server/index.js",
     "dev": "tsc && node build/index.js",
+    "clean": "rm -rf build server dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vlad-ds/dna-analysis-mcp.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["dna", "genetics", "genomics", "snp", "analysis", "privacy", "bioinformatics", "mcp", "dxt", "desktop-extension"],
+  "author": {
+    "name": "Vlad Gheorghe",
+    "url": "https://www.linkedin.com/in/vlad-ds/"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/vlad-ds/dna-analysis-mcp/issues"
   },
   "homepage": "https://github.com/vlad-ds/dna-analysis-mcp#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.2",
     "zod": "^3.25.67"
@@ -31,5 +40,11 @@
   "devDependencies": {
     "@types/node": "^24.0.7",
     "typescript": "^5.8.3"
-  }
+  },
+  "files": [
+    "server/",
+    "manifest.json",
+    "icon.png",
+    "README.md"
+  ]
 }
