@@ -28,8 +28,7 @@ If the double-click method doesn't work:
 2. **Install via Claude Desktop**
    - Open Claude Desktop
    - Go to Settings → Extensions
-   - Click "Install Extension" and select the `dna-analysis-mcp.dxt` file
-   - The extension will be automatically configured
+   - Drag the .dxt file on the window
 
 ### Prerequisites
 - Node.js 16.0.0 or higher (automatically handled by the .dxt file)
