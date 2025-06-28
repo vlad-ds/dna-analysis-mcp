@@ -114,14 +114,14 @@ const server = new Server({
 async function safeReadFile(filePath: string, maxSize: number = MAX_FILE_SIZE): Promise<string> {
   return new Promise(async (resolve, reject) => {
     const timeout = setTimeout(() => {
-      reject(new Error(`File read timeout after ${OPERATION_TIMEOUT}ms`));
+      reject(new Error(`File read timeout after ${OPERATION_TIMEOUT/1000} seconds. The file may be too large or the system may be under heavy load. Try again or check file size.`));
     }, OPERATION_TIMEOUT);
 
     try {
       const stats = await stat(filePath);
       if (stats.size > maxSize) {
         clearTimeout(timeout);
-        reject(new Error(`File too large: ${stats.size} bytes (max ${maxSize})`));
+        reject(new Error(`File too large: ${(stats.size/1024/1024).toFixed(1)}MB (max ${maxSize/1024/1024}MB). Please reduce file size or split the data into smaller files.`));
         return;
       }
 
@@ -130,7 +130,13 @@ async function safeReadFile(filePath: string, maxSize: number = MAX_FILE_SIZE): 
       resolve(content);
     } catch (error) {
       clearTimeout(timeout);
-      reject(error);
+      if (error instanceof Error && (error as any).code === 'ENOENT') {
+        reject(new Error(`File not found: ${filePath}. Please check the file path and ensure the file exists.`));
+      } else if (error instanceof Error && (error as any).code === 'EACCES') {
+        reject(new Error(`Permission denied: ${filePath}. Please check file permissions and ensure you have read access.`));
+      } else {
+        reject(error);
+      }
     }
   });
 }
@@ -247,7 +253,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 content: [
                   {
                     type: "text",
-                    text: JSON.stringify([`Error: Invalid regex pattern '${pattern}': ${e}`]),
+                    text: JSON.stringify([`Error: Invalid regex pattern '${pattern}': ${e}. Please use valid JavaScript regex syntax (e.g., 'john.*' for names starting with 'john').`]),
                   },
                 ],
               };
@@ -267,7 +273,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: "text",
-                text: JSON.stringify([`Error: ${e}`]),
+                text: JSON.stringify([`Error accessing DNA profiles directory: ${e}. Please ensure the directory '${SAMPLES_DIR}' exists and you have read permissions. Create it with: mkdir -p "${SAMPLES_DIR}"`]),
               },
             ],
           };
@@ -286,7 +292,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               content: [
                 {
                   type: "text",
-                  text: JSON.stringify({ error: `Subject '${subject_name}' not found` }),
+                  text: JSON.stringify({ 
+                    error: `Subject '${subject_name}' not found. Available subjects can be listed using the 'list_subjects' tool. To create this subject, run: mkdir -p "${subjectDir}" and add a snp.txt file.` 
+                  }),
                 },
               ],
             };
@@ -325,7 +333,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: "text",
-                text: JSON.stringify({ error: `Error reading test info: ${e}` }),
+                text: JSON.stringify({ error: `Error reading test info for '${subject_name}': ${e}. Please check that the file exists and you have read permissions. File should be at: ${join(SAMPLES_DIR, subject_name, "test_info.txt")}` }),
               },
             ],
           };
@@ -344,7 +352,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               content: [
                 {
                   type: "text",
-                  text: JSON.stringify({ error: `Subject '${subject_name}' not found` }),
+                  text: JSON.stringify({ 
+                    error: `Subject '${subject_name}' not found. Available subjects can be listed using the 'list_subjects' tool. To create this subject, run: mkdir -p "${subjectDir}" and add a snp.txt file.` 
+                  }),
                 },
               ],
             };
@@ -383,7 +393,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: "text",
-                text: JSON.stringify({ error: `Error reading subject info: ${e}` }),
+                text: JSON.stringify({ error: `Error reading subject info for '${subject_name}': ${e}. Please check that the file exists and you have read permissions. File should be at: ${join(SAMPLES_DIR, subject_name, "subject_info.txt")}` }),
               },
             ],
           };
@@ -403,7 +413,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               content: [
                 {
                   type: "text",
-                  text: JSON.stringify({ error: "Maximum 10 RSIDs allowed per query for privacy protection" }),
+                  text: JSON.stringify({ 
+                    error: `Maximum 10 RSIDs allowed per query for privacy protection. You provided ${rsids.length} RSIDs. Please reduce your query to 10 or fewer RSIDs and try again.` 
+                  }),
                 },
               ],
             };
@@ -414,7 +426,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               content: [
                 {
                   type: "text",
-                  text: JSON.stringify({ error: "At least 1 RSID must be provided" }),
+                  text: JSON.stringify({ 
+                    error: "At least 1 RSID must be provided. Please provide a valid RSID (e.g., 'rs3131972') or an array of RSIDs (e.g., ['rs3131972', 'rs1815739'])." 
+                  }),
                 },
               ],
             };
@@ -428,7 +442,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 {
                   type: "text",
                   text: JSON.stringify({
-                    error: `Invalid RSID format(s): ${JSON.stringify(invalidRsids)}. RSIDs must match pattern: rs followed by digits (e.g., rs123456)`
+                    error: `Invalid RSID format(s): ${JSON.stringify(invalidRsids)}. RSIDs must start with 'rs' followed by digits (e.g., 'rs123456', 'rs3131972'). Please correct these RSIDs and try again.`
                   }),
                 },
               ],
@@ -444,7 +458,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               content: [
                 {
                   type: "text",
-                  text: JSON.stringify({ error: `Subject '${subject_name}' not found` }),
+                  text: JSON.stringify({ 
+                    error: `Subject '${subject_name}' not found. Available subjects can be listed using the 'list_subjects' tool. To create this subject, run: mkdir -p "${subjectDir}" and add a snp.txt file.` 
+                  }),
                 },
               ],
             };
@@ -455,7 +471,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               content: [
                 {
                   type: "text",
-                  text: JSON.stringify({ error: `No snp.txt file found for subject '${subject_name}'` }),
+                  text: JSON.stringify({ 
+                    error: `No snp.txt file found for subject '${subject_name}'. Please create a tab-delimited SNP file at: ${snpFile}. The file should have columns: rsid, chromosome, position, allele1, allele2.` 
+                  }),
                 },
               ],
             };
@@ -514,7 +532,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: "text",
-                text: JSON.stringify({ error: `Error querying SNP data: ${e}` }),
+                text: JSON.stringify({ 
+                  error: `Error querying SNP data for '${subject_name}': ${e}. Please check that the snp.txt file exists, is readable, and contains valid tab-delimited data. File location: ${join(SAMPLES_DIR, subject_name, 'snp.txt')}` 
+                }),
               },
             ],
           };
