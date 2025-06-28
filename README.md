@@ -82,6 +82,13 @@ python server.py
 ## Privacy Notice
 
 This server is designed with privacy protection in mind:
-- Only authorized RSIDs can be queried
-- No bulk data export is allowed
-- DNA profile data is stored in ~/dna-profiles/ and excluded from version control
+
+### Local Storage Only
+- **Your DNA files remain on your computer** - All DNA data is stored locally in `~/dna-profiles/` on your machine
+- **No data is uploaded** - DNA files are never transmitted to external servers or cloud services
+- **AI sees only snippets** - When the AI queries your DNA data, it only sees the specific SNP information requested, not your entire genetic profile
+
+### Additional Privacy Features
+- Only authorized RSIDs can be queried - prevents bulk genetic data access
+- No bulk data export is allowed - protects against wholesale data extraction
+- DNA profile data is excluded from version control - ensures your genetic data isn't accidentally committed to repositories
