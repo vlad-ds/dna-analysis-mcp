@@ -217,7 +217,7 @@ npm install
 npm run build
 
 # Create the .dxt file
-dxt pack
+npx @anthropic-ai/dxt pack
 ```
 
 This will create `dna-analysis-mcp.dxt` in the project root, ready for installation.
