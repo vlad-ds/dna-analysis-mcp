@@ -403,9 +403,50 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "query_snp_data": {
         const { subject_name, rsids: rsidsInput } = QuerySnpDataSchema.parse(args);
         
+        // Log input type for debugging complex serialization issues
+        log('info', 'query_snp_data input', { 
+          subject: subject_name,
+          rsidsType: typeof rsidsInput, 
+          isArray: Array.isArray(rsidsInput)
+        });
+        
         try {
-          // Convert single RSID to array
-          const rsids = Array.isArray(rsidsInput) ? rsidsInput : [rsidsInput];
+          // Handle different input formats robustly
+          let rsids: string[];
+          
+          if (Array.isArray(rsidsInput)) {
+            // Already an array - use as-is
+            rsids = rsidsInput;
+          } else if (typeof rsidsInput === 'string') {
+            // Check if it's a JSON-encoded array string
+            if (rsidsInput.trim().startsWith('[') && rsidsInput.trim().endsWith(']')) {
+              try {
+                const parsed = JSON.parse(rsidsInput);
+                if (Array.isArray(parsed)) {
+                  log('info', 'Parsed JSON array from string input', { originalInput: rsidsInput, parsed });
+                  rsids = parsed;
+                } else {
+                  // Single string that looks like JSON but isn't an array
+                  rsids = [rsidsInput];
+                }
+              } catch (parseError) {
+                log('warn', 'Failed to parse JSON-like string, treating as single RSID', { input: rsidsInput, error: parseError });
+                rsids = [rsidsInput];
+              }
+            } else {
+              // Regular string - single RSID
+              rsids = [rsidsInput];
+            }
+          } else {
+            log('error', 'Unexpected rsidsInput type', { rsidsInput, type: typeof rsidsInput });
+            rsids = [String(rsidsInput)]; // Fallback conversion
+          }
+          
+          // Log final processing result  
+          log('info', 'Processing RSIDs', { 
+            count: rsids.length,
+            isStringInput: typeof rsidsInput === 'string' && rsidsInput.startsWith('[')
+          });
 
           // Validate RSID count (privacy protection)
           if (rsids.length > 10) {
@@ -436,13 +477,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
           // Validate RSID formats
           const invalidRsids = rsids.filter(rsid => !validateRsid(rsid));
+          
           if (invalidRsids.length > 0) {
+            log('warn', 'Invalid RSID formats detected', { 
+              invalidCount: invalidRsids.length, 
+              totalCount: rsids.length,
+              examples: invalidRsids.slice(0, 3) // Show first 3 invalid ones
+            });
             return {
               content: [
                 {
                   type: "text",
                   text: JSON.stringify({
-                    error: `Invalid RSID format(s): ${JSON.stringify(invalidRsids)}. RSIDs must start with 'rs' followed by digits (e.g., 'rs123456', 'rs3131972'). Please correct these RSIDs and try again.`
+                    error: `Invalid RSID format(s): ${JSON.stringify(invalidRsids)}. RSIDs must match pattern: rs followed by digits (e.g., rs123456)`
                   }),
                 },
               ],

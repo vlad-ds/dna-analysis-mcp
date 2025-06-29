@@ -37,6 +37,7 @@ Expected DNA profile organization:
 npm run build          # Compile TypeScript to build/ then copy to server/
 npm run build:dxt       # Full DXT build: compile + package into .dxt file
 npm run bundle          # Create npm package in dist/
+dxt pack               # CORRECT way to repackage .dxt extension after changes
 ```
 
 ### Development
@@ -74,7 +75,9 @@ The `.dxt` file is created through:
 3. npm pack with specific file inclusion
 4. Results in bundled extension with all dependencies
 
-**Critical**: The manifest must use `${__dirname}/server/index.js` for proper DXT path resolution, not relative paths like `./server/index.js`.
+**Critical Notes**:
+- The manifest must use `${__dirname}/server/index.js` for proper DXT path resolution, not relative paths like `./server/index.js`
+- **Always use `dxt pack` to repackage extensions** - do NOT manually copy .tgz files or use other methods
 
 ## Release Process
 
