@@ -40,3 +40,6 @@ Thumbs.db
 
 # Privacy: Exclude DNA data samples
 samples/
+
+# Social media posts
+linkedin_post.txt

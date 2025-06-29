@@ -1,5 +1,7 @@
 # DNA Analysis Desktop Extension (DXT)
 
+**⚠️ IMPORTANT DISCLAIMER: This tool is for educational and personal research purposes only. It is not intended for medical diagnosis, treatment decisions, or clinical use. Always consult with qualified healthcare professionals and genetic counselors for any health-related questions or decisions. The authors assume no responsibility for any actions taken based on the information provided by this tool.**
+
 A Model Context Protocol (MCP) server for analyzing DNA data with privacy protection, packaged as a Desktop Extension (DXT) for easy installation across DXT-compatible applications.
 
 ## 🧬 Features
